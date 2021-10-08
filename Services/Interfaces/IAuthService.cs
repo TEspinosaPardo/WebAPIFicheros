@@ -10,6 +10,6 @@ namespace WebAPIFicheros.Services.Interfaces
     {
         void Login(AuthDTO login);
         void Signup(AuthDTO login);
-        void ForgotPassword(string email);
+        void ForgotPassword(AuthDTO login);
     }
 }

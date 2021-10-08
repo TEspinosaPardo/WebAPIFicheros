@@ -11,5 +11,7 @@ namespace WebAPIFicheros.Models.Daos.Interfaces
         void Login(AuthDTO login);
         void Add(Login login);
         Login GetLoginByEmail(string email);
+        bool CheckIfUserExists(string user, string email);
+        void Save(Login login);
     }
 }

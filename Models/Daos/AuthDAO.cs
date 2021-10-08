@@ -27,5 +27,15 @@ namespace WebAPIFicheros.Models.Daos
         {
             return db.Logins.FirstOrDefault(login => login.Email.Equals(email));
         }
+
+        public bool CheckIfUserExists(string user, string email)
+        {
+            return db.Logins.FirstOrDefault(login => login.User.Equals(user) && login.Email.Equals(email)) != null;
+        }
+
+        public void Save(Login login)
+        {
+            db.SaveChanges();
+        }
     }
 }

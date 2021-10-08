@@ -27,43 +27,57 @@ namespace WebAPIFicheros.Services
             throw new NotImplementedException();
         }
 
-        public void Signup(AuthDTO loginDTO)
+        public void Signup(AuthDTO login)
         {
-            var login = new Login()
+            if(!authDAO.CheckIfUserExists(login.Signup.Request.User, login.Signup.Request.Email))
             {
-                User = loginDTO.User,
-                Password = Encrypt(loginDTO.Password),
-                Email = loginDTO.Email
-            };
+                var signUpLogin = new Login()
+                {
+                    User = login.Signup.Request.User,
+                    Password = Encrypt(login.Signup.Request.Password),
+                    Email = login.Signup.Request.Email
+                };
 
-            authDAO.Add(login);
-        }
-
-        public void ForgotPassword(string email)
-        {
-            Login login = authDAO.GetLoginByEmail(email);
-
-            if(login != null)
+                authDAO.Add(signUpLogin);
+            }
+            else
             {
-                ResetPassword(login);
-                SendForgotEmail(login);
+                login.Signup.Response.Errors.Add("User already exists");
             }
         }
 
+        public void ForgotPassword(AuthDTO login)
+        {
+            Login forgotLogin = authDAO.GetLoginByEmail(login.ForgotPassword.Request.Email);
+
+            if(forgotLogin != null)
+            {
+                ResetPassword(forgotLogin);
+                SendForgotEmail(login, forgotLogin);
+            }
+            else
+            {
+                login.ForgotPassword.Response.Errors.Add("Specified user doesn't exist");
+            }
+        }
+
+        #region Private methods
         private void ResetPassword(Login login)
         {
             login.Password = Encrypt(Guid.NewGuid().ToString().Substring(0, 7));
+
+            authDAO.Save(login);
         }
 
-        private void SendForgotEmail(Login login)
+        private void SendForgotEmail(AuthDTO login, Login forgotLogin)
         {
-            string to = login.Email;
-            string from = "aluxion@forgotpassword.com";
+            string to = forgotLogin.Email;
+            string from = "webapiprueba@gmail.com";
 
             MailMessage message = new MailMessage(from, to)
             {
                 Subject = "Password recovery",
-                Body = $"Your new password is: {login.Password}"
+                Body = $"Your new password is: {Decrypt(forgotLogin.Password)}"
             };
 
             var smtp = new SmtpClient
@@ -80,89 +94,13 @@ namespace WebAPIFicheros.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error al enviar mail: {ex.Message}");
+                login.ForgotPassword.Response.Errors.Add($"Error sending mail: {ex.Message}");
             }
         }
-
-
-        #region Token
-        private static async Task<string> GetAuthorizeToken()
-        {
-            // Initialization.  
-            string responseObj = string.Empty;
-
-            // Posting.  
-            using (var client = new HttpClient())
-            {
-                // Setting Base address.  
-                client.BaseAddress = new Uri("http://localhost:3097/");
-
-                // Setting content type.  
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                // Initialization.  
-                HttpResponseMessage response = new HttpResponseMessage();
-                List<KeyValuePair<string, string>> allIputParams = new List<KeyValuePair<string, string>>();
-
-                // Convert Request Params to Key Value Pair.  
-
-                // URL Request parameters.  
-                HttpContent requestParams = new FormUrlEncodedContent(allIputParams);
-
-                // HTTP POST  
-                response = await client.PostAsync("Token", requestParams).ConfigureAwait(false);
-
-                // Verification  
-                if (response.IsSuccessStatusCode)
-                {
-                    // Reading Response.  
-
-                }
-            }
-
-            return responseObj;
-        }
-
-        private static async Task<string> GetInfo(string authorizeToken)
-        {
-            // Initialization.  
-            string responseObj = string.Empty;
-
-            // HTTP GET.  
-            using (var client = new HttpClient())
-            {
-                // Initialization  
-                string authorization = authorizeToken;
-
-                // Setting Authorization.  
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authorization);
-
-                // Setting Base address.  
-                client.BaseAddress = new Uri("https://localhost:44334/");
-
-                // Setting content type.  
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                // Initialization.  
-                HttpResponseMessage response = new HttpResponseMessage();
-
-                // HTTP GET  
-                response = await client.GetAsync("api/WebApi").ConfigureAwait(false);
-
-                // Verification  
-                if (response.IsSuccessStatusCode)
-                {
-                    // Reading Response.  
-                }
-            }
-
-            return responseObj;
-        }
-        #endregion
 
         #region Password encryption
 
-        private string Encrypt(string clearText)
+        private static string Encrypt(string clearText)
         {
             string EncryptionKey = "ALUXION";
             byte[] clearBytes = Encoding.Unicode.GetBytes(clearText);
@@ -182,7 +120,7 @@ namespace WebAPIFicheros.Services
             return clearText;
         }
 
-        private string Decrypt(string cipherText)
+        private static string Decrypt(string cipherText)
         {
             string EncryptionKey = "ALUXION";
             byte[] cipherBytes = Convert.FromBase64String(cipherText);
@@ -205,5 +143,7 @@ namespace WebAPIFicheros.Services
         }
 
         #endregion
+        #endregion
+
     }
 }

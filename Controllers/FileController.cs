@@ -28,7 +28,7 @@ namespace WebAPIFicheros.Controllers
         {
             await fileService.Upload(file);
 
-            return Ok(file);
+            return file.Upload.Response.Errors.Count > 0 ? StatusCode(500, file) : Ok(file);
         }
 
         [HttpPost]
@@ -37,7 +37,7 @@ namespace WebAPIFicheros.Controllers
         {
             await fileService.Download(file);
 
-            return Ok(file);
+            return file.Download.Response.Errors.Count > 0 ? StatusCode(500, file) : Ok(file);
         }
 
         [HttpPost]
@@ -46,7 +46,7 @@ namespace WebAPIFicheros.Controllers
         {
             await fileService.ModifyFilename(file);
 
-            return Ok(file);
+            return file.ModifyName.Response.Errors.Count > 0 ? StatusCode(500, file) : Ok(file);
         }
 
         [HttpPost]
@@ -55,7 +55,7 @@ namespace WebAPIFicheros.Controllers
         {
             await fileService.Delete(file);
 
-            return Ok(file);
+            return file.Delete.Response.Errors.Count > 0 ? StatusCode(500, file) : Ok(file);
         }
 
         [HttpPost]
@@ -64,7 +64,25 @@ namespace WebAPIFicheros.Controllers
         {
             fileService.GetURL(file);
 
-            return Ok(file);
+            return file.GetURL.Response.Errors.Count > 0 ? StatusCode(500, file) : Ok(file);
+        }
+
+        [HttpPost]
+        [Route("GetImageFromExternalAPI")]
+        public async Task <IActionResult> GetImageFromExternalAPI([FromBody] FileDTO file)
+        {
+            await fileService.GetImageFromExternalAPI(file);
+
+            return file.GetImageFromExternalAPI.Response.Errors.Count > 0 ? StatusCode(500, file) : Ok(file);
+        }
+
+        [HttpPost]
+        [Route("GetImageFromExternalAPIAndUpload")]
+        public async Task<IActionResult> GetImageFromExternalAPIAndUpload([FromBody] FileDTO file)
+        {
+            await fileService.GetImageFromExternalAPIAndUpload(file);
+
+            return file.GetImageFromExternalAPIAndUpload.Response.Errors.Count > 0 ? StatusCode(500, file) : Ok(file);
         }
     }
 }

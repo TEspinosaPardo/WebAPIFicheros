@@ -35,16 +35,16 @@ namespace WebAPIFicheros.Controllers
         {
             authService.Signup(login);
 
-            return Ok();
+            return login.Signup.Response.Errors.Count > 0 ? StatusCode(500, login) : Ok(login);
         }
 
         [HttpPost]
         [Route("ForgotPassword")]
-        public IActionResult ForgotPassword([FromBody] string email)
+        public IActionResult ForgotPassword([FromBody] AuthDTO login)
         {
-            authService.ForgotPassword(email);
+            authService.ForgotPassword(login);
 
-            return Ok();
+            return login.ForgotPassword.Response.Errors.Count > 0 ? StatusCode(500, login) : Ok(login);
         }
 
     }

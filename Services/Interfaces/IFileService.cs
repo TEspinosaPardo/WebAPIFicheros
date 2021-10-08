@@ -13,5 +13,7 @@ namespace WebAPIFicheros.Services.Interfaces
         public Task ModifyFilename(FileDTO file);
         public Task Delete(FileDTO file);
         public void GetURL(FileDTO file);
+        public Task GetImageFromExternalAPI(FileDTO file);
+        public Task GetImageFromExternalAPIAndUpload(FileDTO file);
     }
 }
